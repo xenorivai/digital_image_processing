@@ -1,5 +1,5 @@
 .vscode
-.png
-.txt
+*.png
+*.txt
 main
-.o
+*.o
