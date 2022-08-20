@@ -8,14 +8,14 @@ using namespace std;
 
 struct filter {
 	filter() = default;
-	filter(int _dim, vector<uint8_t> _data) : dim(_dim) {
+	filter(int _dim, vector<float> _data) : dim(_dim) {
 		w.resize(dim*dim);
 		for (int i = 0; i < dim * dim; i++) {
 			w[i] = _data[i];
 			mul += w[i];
 		}
 	}
-	filter(int _dim, uint8_t _data[]) : dim(_dim) {
+	filter(int _dim, float _data[]) : dim(_dim) {
 		assert(_data != NULL);
 		w.resize(dim * dim);
 		for (int i = 0; i < dim * dim; i++) {
@@ -26,11 +26,11 @@ struct filter {
 	~filter() {
 
 	}
-	inline uint8_t operator()(int i, int j) {
+	inline float operator()(int i, int j) {
 		return w[i * dim + j];
 	}
 
-	vector<uint8_t> w;
+	vector<float> w;
 	int dim;
 	double mul; // multiply by 1/mul
 };

@@ -33,14 +33,15 @@ int main(int argc, char* argv[]) {
 		// }
 		// input = Image(image_data,5,5,1);
 
-		uint8_t filter_data[] = {
-								10,20,10,
-								20,0,20,
-								10,20,10
-								}; 
+		float filter_data[] = {
+								0, 1, 0,
+								1,-4, 1,
+								0, 1, 0
+							};
 		filter W(3,filter_data);
+		input = input.convert_to_gray();
 		input.save("col_input.png");
-		col_output = dip::correlate(input,W);
+		col_output = dip::laplace(input,W);
 	}
 
 	else if (choice == 1) {//Image Negative

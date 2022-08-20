@@ -71,6 +71,21 @@ struct Image {
 		return output;
 	}
 
+	inline Image operator-(Image& rhs) {
+		assert(rhs.width == width && rhs.height == height && rhs.bpp == bpp);
+
+		Image output(width, height, bpp);
+
+		for (int chn = 0; chn < bpp; chn++) {
+			for (int r = 0; r < height; r++) {
+				for (int c = 0; c < width; c++) {
+					output.data[(r * width + c) * bpp + chn] = this->operator()(r, c, chn) - rhs(r, c, chn);
+				}
+			}
+		}
+		return output;
+	}
+
 	Image correlate(filter& w){
 		Image output(width,height,bpp);
 
@@ -94,6 +109,93 @@ struct Image {
 		return output;
 	}
 
+	Image convolve(filter& w){
+		Image output(width,height,bpp);
+
+		for (int chn = 0; chn < bpp; chn++) {
+			for (int r = 0; r < height; r++) {
+				for (int c = 0; c < width; c++) {
+					uint64_t pixel = 0;
+					int a = (w.dim-1)/2;
+					int b = (w.dim-1)/2;
+					// printf("r|c : %d|%d\n", r, c);
+					for(int s = -a ; s <= a; s++){
+						for(int t = -b; t <= b; t++){
+							pixel += w(s+a,t+b)*(this->operator()(r-s,c-t,chn));
+							// printf("s+a : %d, t+b : %d, r+s : %d, c+t : %d\n", s+a, t+b, r+s, c+t);
+						}
+					}
+					output.data[(r * width + c) * bpp + chn] = static_cast<uint8_t>(round(double(pixel) / w.mul));
+				}
+			}
+		}
+		return output;
+	}
+
+	Image max_filter(filter& w){
+		Image output(width, height, bpp);
+
+		for (int chn = 0; chn < bpp; chn++) {
+			for (int r = 0; r < height; r++) {
+				for (int c = 0; c < width; c++) {
+					uint8_t pixel = 0;
+					int a = (w.dim - 1) / 2;
+					int b = (w.dim - 1) / 2;
+					for (int s = -a; s <= a; s++) {
+						for (int t = -b; t <= b; t++) {
+							pixel = max(pixel,this->operator()(r + s, c + t, chn));
+						}
+					}
+					output.data[(r * width + c) * bpp + chn] = pixel;
+				}
+			}
+		}
+		return output;
+	}
+
+	Image min_filter(filter& w){
+		Image output(width, height, bpp);
+
+		for (int chn = 0; chn < bpp; chn++) {
+			for (int r = 0; r < height; r++) {
+				for (int c = 0; c < width; c++) {
+					uint8_t pixel = UINT8_MAX;
+					int a = (w.dim - 1) / 2;
+					int b = (w.dim - 1) / 2;
+					for (int s = -a; s <= a; s++) {
+						for (int t = -b; t <= b; t++) {
+							pixel = min(pixel,this->operator()(r + s, c + t, chn));
+						}
+					}
+					output.data[(r * width + c) * bpp + chn] = pixel;
+				}
+			}
+		}
+		return output;
+	}
+
+	Image median_filter(filter& w){
+		Image output(width, height, bpp);
+
+		for (int chn = 0; chn < bpp; chn++) {
+			for (int r = 0; r < height; r++) {
+				for (int c = 0; c < width; c++) {
+					vector<uint8_t> buf;
+					int a = (w.dim - 1) / 2;
+					int b = (w.dim - 1) / 2;
+					for (int s = -a; s <= a; s++) {
+						for (int t = -b; t <= b; t++) {
+							buf.push_back(this->operator()(r + s, c + t, chn));
+						}
+					}
+					sort(buf.begin(),buf.end());
+					output.data[(r * width + c) * bpp + chn] = buf[(buf.size()-1)/2];
+				}
+			}
+		}
+		return output;
+	}
+
 	Image convert_to_gray(void){
 		Image gray(width, height, 1);
 		///Convert To Grayscale
@@ -107,6 +209,27 @@ struct Image {
 			}
 		}
 		return gray;
+	}
+
+	Image laplace(filter& w) {
+		Image output(width, height, bpp);
+
+		for (int chn = 0; chn < bpp; chn++) {
+			for (int r = 0; r < height; r++) {
+				for (int c = 0; c < width; c++) {
+					uint64_t pixel = 0;
+					int a = (w.dim - 1) / 2;
+					int b = (w.dim - 1) / 2;
+					for (int s = -a; s <= a; s++) {
+						for (int t = -b; t <= b; t++) {
+							pixel += w(s + a, t + b) * (this->operator()(r + s, c + t, chn));
+						}
+					}
+					output.data[(r * width + c) * bpp + chn] = pixel;
+				}
+			}
+		}
+		return output;
 	}
 
 	vector<uint8_t> data;

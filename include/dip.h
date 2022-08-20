@@ -10,7 +10,12 @@ namespace dip {
 	Image grayscale_histogram_equalization(Image& input);
 	Image grayscale_negative(Image& input);
 	Image negative(Image& input);
-	Image correlate(Image& input, filter& w);	
+	Image correlate(Image& input, filter& filt);
+	Image convolve(Image& input, filter& filt);
+	Image max_filter(Image& input, filter& filt);
+	Image min_filter(Image& input, filter& filt);
+	Image median_filter(Image& input, filter& filt);
+	Image laplace(Image& input, filter& filt);
 	void log_transform(uint8_t* input, const int height, const int width, uint8_t* output, const double factor);
 }
 
@@ -53,6 +58,122 @@ Image dip::correlate(Image& input, filter& filt){
 	plt::imshow(output.data.data(), output.height, output.width, output.bpp);
 	plt::subplot2grid(1, 3, 0, 2, 1, 1);
 	plt::imshow(filt.w.data(), filt.dim, filt.dim, 1);
+
+	plt::show();
+
+	return output;
+}
+
+Image dip::convolve(Image& input, filter& filt){
+	Image output(input.width,input.height,input.bpp);
+
+	output = input.convolve(filt);
+
+	///Save image
+	output.save("convolved.png");
+
+	///Plot Images
+	plt::figure_size(960, 480);
+	plt::title("Input and Convolved");
+	plt::subplot2grid(1, 3, 0, 0, 1, 1);
+	plt::imshow(input.data.data(), input.height, input.width, input.bpp);
+	plt::subplot2grid(1, 3, 0, 1, 1, 1);
+	plt::imshow(output.data.data(), output.height, output.width, output.bpp);
+	plt::subplot2grid(1, 3, 0, 2, 1, 1);
+	plt::imshow(filt.w.data(), filt.dim, filt.dim, 1);
+
+	plt::show();
+
+	return output;
+}
+
+Image dip::max_filter(Image& input, filter& filt){
+	Image output(input.width, input.height, input.bpp);
+
+	output = input.max_filter(filt);
+
+	///Save image
+	output.save("max_filtered.png");
+
+	///Plot Images
+	plt::figure_size(960, 480);
+	plt::title("Input and Max_Filtered");
+	plt::subplot2grid(1, 2, 0, 0, 1, 1);
+	plt::imshow(input.data.data(), input.height, input.width, input.bpp);
+	plt::subplot2grid(1, 2, 0, 1, 1, 1);
+	plt::imshow(output.data.data(), output.height, output.width, output.bpp);
+
+	plt::show();
+
+	return output;
+}
+
+Image dip::min_filter(Image& input, filter& filt){
+	Image output(input.width, input.height, input.bpp);
+
+	output = input.min_filter(filt);
+
+	///Save image
+	output.save("min_filtered.png");
+
+	///Plot Images
+	plt::figure_size(960, 480);
+	plt::title("Input and Min_Filtered");
+	plt::subplot2grid(1, 2, 0, 0, 1, 1);
+	plt::imshow(input.data.data(), input.height, input.width, input.bpp);
+	plt::subplot2grid(1, 2, 0, 1, 1, 1);
+	plt::imshow(output.data.data(), output.height, output.width, output.bpp);
+	plt::show();
+
+	return output;
+}
+
+Image dip::median_filter(Image& input, filter& filt){
+	Image output(input.width, input.height, input.bpp);
+
+	output = input.median_filter(filt);
+
+	///Save image
+	output.save("median_filtered.png");
+
+	///Plot Images
+	plt::figure_size(960, 480);
+	plt::title("Input and Median_Filtered");
+	plt::subplot2grid(1, 2, 0, 0, 1, 1);
+	plt::imshow(input.data.data(), input.height, input.width, input.bpp);
+	plt::subplot2grid(1, 2, 0, 1, 1, 1);
+	plt::imshow(output.data.data(), output.height, output.width, output.bpp);
+	plt::show();
+
+	return output;
+}
+
+Image dip::laplace(Image& input, filter& filt) {
+
+	Image intermediate(input.width, input.height, input.bpp);
+	Image output(input.width, input.height, input.bpp);
+	intermediate = input.laplace(filt);
+
+	if(filt.w[(filt.w.size()-1)/2] > 0){
+		output = input + intermediate;
+	}
+	else output = input - intermediate;
+
+	///Save image
+	intermediate.save("intermediate.png");
+	output.save("sharpened.png");
+
+	///Plot images
+	plt::figure_size(960, 480);
+	plt::title("Input and Convolved");
+	plt::subplot2grid(2, 2, 0, 0, 1, 1);
+	plt::imshow(input.data.data(), input.height, input.width, input.bpp);
+	plt::subplot2grid(2, 2, 0, 1, 1, 1);
+	plt::imshow(output.data.data(), output.height, output.width, output.bpp);
+	plt::subplot2grid(2, 2, 1, 0, 1, 1);
+	plt::imshow(filt.w.data(), filt.dim, filt.dim, 1);
+	plt::subplot2grid(2, 2, 1, 1, 1, 1);
+	plt::imshow(intermediate.data.data(), intermediate.height, intermediate.width, intermediate.bpp);
 
 	plt::show();
 
